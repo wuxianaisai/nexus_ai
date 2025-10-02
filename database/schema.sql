@@ -5,6 +5,17 @@ CREATE TABLE roles (
     CONSTRAINT valid_role CHECK (name IN ('TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'))
 );
 
+-- Champions table
+CREATE TABLE IF NOT EXISTS champions (
+    champion_id INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    version VARCHAR(10) NOT NULL,
+    tags VARCHAR[] DEFAULT '{}',
+    difficulty INTEGER CHECK (difficulty >= 1 AND difficulty <= 10),
+    primary_role VARCHAR(20),
+    CONSTRAINT unique_champion UNIQUE (champion_id, version)
+);
+
 -- Players_names table (для lookup puuid по имени)
 CREATE TABLE players_names (
     player_id SERIAL PRIMARY KEY,
