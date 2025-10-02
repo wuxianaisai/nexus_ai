@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>NEXUS AI — Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/styles.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="logo">NEXUS AI</div>
+        <nav class="top-nav">
+            <a href="#home">Главная</a>
+            <a href="#how">Как пользоваться</a>
+            <a href="#analysis">Анализ</a>
+            <a href="#contacts">Контакты</a>
+        </nav>
+    </header>
+    <div class="spacer"></div>
+
+    <!-- HERO -->
+    <section class="hero" id="home" aria-label="Hero">
+        <svg class="neural parallax-layer" viewBox="0 0 1600 900" preserveAspectRatio="none">
+            <g fill="none" stroke="#111" stroke-width="1" opacity="0.08">
+                <!-- Узлы -->
+                <circle cx="100" cy="200" r="6" class="node" />
+                <circle cx="100" cy="500" r="6" class="node" />
+                <circle cx="300" cy="150" r="6" class="node" />
+                <circle cx="300" cy="400" r="6" class="node" />
+                <circle cx="300" cy="650" r="6" class="node" />
+                <circle cx="500" cy="250" r="6" class="node" />
+                <circle cx="500" cy="550" r="6" class="node" />
+                <circle cx="800" cy="100" r="6" class="node" />
+                <circle cx="800" cy="350" r="6" class="node" />
+                <circle cx="800" cy="600" r="6" class="node" />
+                <circle cx="1100" cy="250" r="6" class="node" />
+                <circle cx="1100" cy="550" r="6" class="node" />
+                <circle cx="1300" cy="150" r="6" class="node" />
+                <circle cx="1300" cy="400" r="6" class="node" />
+                <circle cx="1300" cy="650" r="6" class="node" />
+                <circle cx="1500" cy="200" r="6" class="node" />
+                <circle cx="1500" cy="500" r="6" class="node" />
+                <!-- Линии -->
+                <path d="M100 200 L300 150" class="line" />
+                <path d="M100 200 L300 400" class="line" />
+                <path d="M100 500 L300 400" class="line" />
+                <path d="M100 500 L300 650" class="line" />
+                <path d="M300 150 L500 250" class="line" />
+                <path d="M300 400 L500 250" class="line" />
+                <path d="M300 400 L500 550" class="line" />
+                <path d="M300 650 L500 550" class="line" />
+                <path d="M500 250 L800 100" class="line" />
+                <path d="M500 250 L800 350" class="line" />
+                <path d="M500 550 L800 350" class="line" />
+                <path d="M500 550 L800 600" class="line" />
+                <path d="M800 100 L1100 250" class="line" />
+                <path d="M800 350 L1100 250" class="line" />
+                <path d="M800 350 L1100 550" class="line" />
+                <path d="M800 600 L1100 550" class="line" />
+                <path d="M1100 250 L1300 150" class="line" />
+                <path d="M1100 250 L1300 400" class="line" />
+                <path d="M1100 550 L1300 400" class="line" />
+                <path d="M1100 550 L1300 650" class="line" />
+                <path d="M1300 150 L1500 200" class="line" />
+                <path d="M1300 400 L1500 200" class="line" />
+                <path d="M1300 400 L1500 500" class="line" />
+                <path d="M1300 650 L1500 500" class="line" />
+            </g>
+        </svg>
+
+        <div class="hero-inner">
+            <div class="bubble-wrap" style="flex:1; justify-content:flex-start;">
+                <div class="left-bubble" id="bubble-left">
+                    <p>Игра — это хаос. Мы превращаем хаос в данные.</p>
+                </div>
+            </div>
+
+            <div class="center" style="flex:0 0 520px;">
+                <div class="nexus" id="nexusText" aria-hidden="true"></div>
+                <div class="nexus-illustration" id="nexusIllustration" title="Nexus">
+                    <img src="public/assets/images/nexus_ai00.png" alt="Nexus">
+                </div>
+                <button class="start-btn"
+                    onclick="document.getElementById('analysis').scrollIntoView({behavior:'smooth'})">НАЧАТЬ</button>
+                <div class="hero-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            </div>
+
+            <div class="bubble-wrap" style="flex:1; justify-content:flex-end;">
+                <div class="right-bubble" id="bubble-right">
+                    <p>ИИ предсказывает исходы матчей. Минимум шума — максимум точности.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS with carousel -->
+    <section class="how" id="how">
+        <div class="how-inner">
+            <div class="how-title">Как пользоваться</div>
+            <div class="carousel" role="region" aria-label="Как пользоваться карусель">
+                <div class="viewport" id="carouselViewport">
+                    <div class="slides" id="slides">
+                        <div class="slide" data-index="0">
+                            <div class="img"><img src="public/assets/images/step1.jpg" alt="Выберите матч" /></div>
+                            <div class="txt">
+                                <h4>1. Выберите матч</h4>
+                                <p>Укажите игроков и команды — или используйте сохранённые профили. Мы автоматически
+                                    загрузим историю и соберём статистику.</p>
+                            </div>
+                        </div>
+                        <div class="slide" data-index="1">
+                            <div class="img"><img src="public/assets/images/step2.jpg" alt="ИИ анализирует" /></div>
+                            <div class="txt">
+                                <h4>2. ИИ анализирует</h4>
+                                <p>Модель агрегирует метрики игроков и вычисляет ключевые показатели команды: золото,
+                                    урон, контроль карты и др.</p>
+                            </div>
+                        </div>
+                        <div class="slide" data-index="2">
+                            <div class="img"><img src="public/assets/images/step3.jpg" alt="Получите прогноз" /></div>
+                            <div class="txt">
+                                <h4>3. Получите прогноз</h4>
+                                <p>Вы получите вероятность победы и конкретные рекомендации для каждой роли — что
+                                    улучшить, на что посмотреть и как играть.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-dots" id="carouselDots"></div>
+                <div class="carousel-controls">
+                    <button class="circle-btn" id="prevBtn" aria-label="Previous slide">‹</button>
+                    <button class="circle-btn" id="nextBtn" aria-label="Next slide">›</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ANALYSIS FORM -->
+    <section class="analysis animate-on-scroll" id="analysis">
+        <div class="analysis-inner">
+            <div class="teams">
+                <div class="team-card">
+                    <h5>Команда — Синяя</h5>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-blue-1" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-blue-1" id="p-blue-1"
+                                aria-label="Ник игрока 1 (Синяя команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-blue-1-champ" class="champ-label">Чемпион</label>
+                            <select class="p-blue-1-champ" id="p-blue-1-champ"
+                                aria-label="Чемпион игрока 1 (Синяя команда)">
+                                <option>Zed</option>
+                                <option>Ahri</option>
+                                <option>Viktor</option>
+                            </select>
+                            <label for="p-blue-1-role" class="role-label">Роль</label>
+                            <select class="p-blue-1-role" id="p-blue-1-role" aria-label="Роль игрока 1 (Синяя команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-blue-2" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-blue-2" id="p-blue-2"
+                                aria-label="Ник игрока 2 (Синяя команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-blue-2-champ" class="champ-label">Чемпион</label>
+                            <select class="p-blue-2-champ" id="p-blue-2-champ"
+                                aria-label="Чемпион игрока 2 (Синяя команда)">
+                                <option>Lee Sin</option>
+                                <option>Jinx</option>
+                            </select>
+                            <label for="p-blue-2-role" class="role-label">Роль</label>
+                            <select class="p-blue-2-role" id="p-blue-2-role" aria-label="Роль игрока 2 (Синяя команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-blue-3" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-blue-3" id="p-blue-3"
+                                aria-label="Ник игрока 3 (Синяя команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-blue-3-champ" class="champ-label">Чемпион</label>
+                            <select class="p-blue-3-champ" id="p-blue-3-champ"
+                                aria-label="Чемпион игрока 3 (Синяя команда)">
+                                <option>Garen</option>
+                                <option>Orianna</option>
+                            </select>
+                            <label for="p-blue-3-role" class="role-label">Роль</label>
+                            <select class="p-blue-3-role" id="p-blue-3-role" aria-label="Роль игрока 3 (Синяя команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-blue-4" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-blue-4" id="p-blue-4"
+                                aria-label="Ник игрока 4 (Синяя команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-blue-4-champ" class="champ-label">Чемпион</label>
+                            <select class="p-blue-4-champ" id="p-blue-4-champ"
+                                aria-label="Чемпион игрока 4 (Синяя команда)">
+                                <option>Kai'Sa</option>
+                                <option>Jinx</option>
+                            </select>
+                            <label for="p-blue-4-role" class="role-label">Роль</label>
+                            <select class="p-blue-4-role" id="p-blue-4-role" aria-label="Роль игрока 4 (Синяя команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-blue-5" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-blue-5" id="p-blue-5"
+                                aria-label="Ник игрока 5 (Синяя команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-blue-5-champ" class="champ-label">Чемпион</label>
+                            <select class="p-blue-5-champ" id="p-blue-5-champ"
+                                aria-label="Чемпион игрока 5 (Синяя команда)">
+                                <option>Thresh</option>
+                                <option>Leona</option>
+                            </select>
+                            <label for="p-blue-5-role" class="role-label">Роль</label>
+                            <select class="p-blue-5-role" id="p-blue-5-role" aria-label="Роль игрока 5 (Синяя команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <h5>Команда — Красная</h5>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-red-1" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-red-1" id="p-red-1"
+                                aria-label="Ник игрока 1 (Красная команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-red-1-champ" class="champ-label">Чемпион</label>
+                            <select class="p-red-1-champ" id="p-red-1-champ"
+                                aria-label="Чемпион игрока 1 (Красная команда)">
+                                <option>Ahri</option>
+                                <option>Viktor</option>
+                            </select>
+                            <label for="p-red-1-role" class="role-label">Роль</label>
+                            <select class="p-red-1-role" id="p-red-1-role" aria-label="Роль игрока 1 (Красная команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-red-2" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-red-2" id="p-red-2"
+                                aria-label="Ник игрока 2 (Красная команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-red-2-champ" class="champ-label">Чемпион</label>
+                            <select class="p-red-2-champ" id="p-red-2-champ"
+                                aria-label="Чемпион игрока 2 (Красная команда)">
+                                <option>Lee Sin</option>
+                                <option>Graves</option>
+                            </select>
+                            <label for="p-red-2-role" class="role-label">Роль</label>
+                            <select class="p-red-2-role" id="p-red-2-role" aria-label="Роль игрока 2 (Красная команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-red-3" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-red-3" id="p-red-3"
+                                aria-label="Ник игрока 3 (Красная команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-red-3-champ" class="champ-label">Чемпион</label>
+                            <select class="p-red-3-champ" id="p-red-3-champ"
+                                aria-label="Чемпион игрока 3 (Красная команда)">
+                                <option>Orianna</option>
+                                <option>Garen</option>
+                            </select>
+                            <label for="p-red-3-role" class="role-label">Роль</label>
+                            <select class="p-red-3-role" id="p-red-3-role" aria-label="Роль игрока 3 (Красная команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-red-4" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-red-4" id="p-red-4"
+                                aria-label="Ник игрока 4 (Красная команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-red-4-champ" class="champ-label">Чемпион</label>
+                            <select class="p-red-4-champ" id="p-red-4-champ"
+                                aria-label="Чемпион игрока 4 (Красная команда)">
+                                <option>Kai'Sa</option>
+                                <option>Ezreal</option>
+                            </select>
+                            <label for="p-red-4-role" class="role-label">Роль</label>
+                            <select class="p-red-4-role" id="p-red-4-role" aria-label="Роль игрока 4 (Красная команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="player-row">
+                        <div class="nick-select">
+                            <label for="p-red-5" class="nick-label">Ник</label>
+                            <input placeholder="GameName#TAG" class="p-red-5" id="p-red-5"
+                                aria-label="Ник игрока 5 (Красная команда)" />
+                        </div>
+                        <div class="champ-select">
+                            <label for="p-red-5-champ" class="champ-label">Чемпион</label>
+                            <select class="p-red-5-champ" id="p-red-5-champ"
+                                aria-label="Чемпион игрока 5 (Красная команда)">
+                                <option>Leona</option>
+                                <option>Thresh</option>
+                            </select>
+                            <label for="p-red-5-role" class="role-label">Роль</label>
+                            <select class="p-red-5-role" id="p-red-5-role" aria-label="Роль игрока 5 (Красная команда)">
+                                <option>Топ</option>
+                                <option>Джунгли</option>
+                                <option>Мид</option>
+                                <option>Бот</option>
+                                <option>Саппорт</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <aside class="analyze-panel">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:13px; color:var(--muted)">Анализ</div>
+                        <div style="font-weight:700; font-size:18px">Состав команд</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px">
+                    <button class="start-btn" id="runAnalysis">Проанализировать</button>
+                </div>
+                <div style="margin-top:12px">
+                    <div style="font-size:13px; color:var(--muted)">Вероятность</div>
+                    <div class="score-large" id="scoreText">—</div>
+                    <div class="progress"><i id="scoreBar"></i></div>
+                </div>
+                <div class="advice" id="adviceBox">
+                    Здесь появятся краткие рекомендации после анализа.
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <footer class="site-footer" id="contacts">
+        <div>NEXUS AI — проект по аналитике матчей League of Legends</div>
+        <div style="margin-top:8px">GitHub • Документация • Контакты</div>
+    </footer>
+
+    <script src="src/js/script.js"></script>
+</body>
+
+</html>

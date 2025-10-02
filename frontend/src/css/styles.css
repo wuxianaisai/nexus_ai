@@ -1,0 +1,498 @@
+:root {
+  --bg: #fbfbfb;
+  --muted: #6b7280;
+  --accent: #0ea5e9;
+  --black: #0b0b0b;
+  --card: #ffffff;
+  --glass: rgba(255,255,255,0.7);
+  --shadow: 0 8px 30px rgba(12,15,20,0.06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f7f9 100%);
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.4;
+}
+a { color: inherit; text-decoration: none; }
+
+/* --- Header & nav --- */
+header.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 100px;
+  z-index: 60;
+  background: transparent;
+}
+.logo { font-weight: 800; letter-spacing: 0.02em; }
+nav.top-nav {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  color: var(--muted);
+  font-weight: 500;
+}
+nav.top-nav a { font-size: 14px; padding: 8px 6px; }
+.spacer { height: 72px; } /* to offset fixed header */
+
+/* --- Hero --- */
+.hero {
+  min-height: 86vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  /* padding-top: 96px; */
+  padding-top: 10px;
+}
+
+/* background SVG neural network */
+.hero .neural {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.hero .neural .line {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawNeural 3s ease-in-out infinite;
+}
+.hero .neural .node {
+  opacity: 0;
+  animation: pulseNode 3s ease-in-out infinite;
+}
+
+.parallax-layer {
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+}
+
+@keyframes drawNeural {
+  0% { stroke-dashoffset: 200; }
+  50% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -200; }
+}
+@keyframes pulseNode {
+  0% { opacity: 0; }
+  50% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.hero-inner {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+  padding: 40px 20px;
+}
+.left-bubble, .right-bubble {
+  width: 260px;
+  min-height: 90px;
+  background: #111;
+  color: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(12,15,20,0.12);
+}
+.left-bubble p, .right-bubble p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* central column */
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  transform-style: preserve-3d;
+}
+/* NEXUS AI big animated letters */
+.nexus {
+  font-weight: 800;
+  font-size: 96px;
+  letter-spacing: 0.02em;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  color: var(--black);
+}
+.nexus span {
+  display: inline-block;
+  transform-origin: center bottom;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: letterIn 0.7s forwards ease;
+}
+/* staggered animation delay applied by JS */
+@keyframes letterIn {
+  to { opacity: 1; transform: translateY(0) rotateX(0deg); }
+}
+.nexus small {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: -6px;
+  font-weight: 600;
+}
+
+/* Nexus image */
+.nexus-illustration {
+  width: 260px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s ease, filter 0.3s;
+  will-change: transform;
+  cursor: grab;
+}
+.nexus-illustration img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  transform-origin: center center;
+  filter: grayscale(40%);
+}
+
+/* bubbles container positions */
+.bubble-wrap {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  justify-content: space-between;
+}
+.bubble-left { margin-right: 20px; }
+.bubble-right { margin-left: 20px; }
+
+/* CTA button center */
+.start-btn {
+  border: 1px solid var(--muted);
+  background: transparent;
+  padding: 10px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 15px;
+}
+
+/* small decorative dots under hero */
+.hero-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.hero-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #efefef;
+  display: block;
+  opacity: 0.7;
+}
+
+/* --- How it works carousel --- */
+section.how {
+  padding: 64px 20px;
+  display: flex;
+  justify-content: center;
+  background: transparent;
+}
+.how-inner { max-width: 1200px; width: 100%; }
+.how-title { font-weight: 700; font-size: 24px; text-align: center; margin-bottom: 30px; }
+.carousel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.carousel .viewport {
+  width: 100%;
+  height: 250px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid #eee;
+  position: relative;
+}
+.slides {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 40px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+.slide.active {
+  opacity: 1;
+}
+.slide .img {
+  width: 50%;
+  height: 100%;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+.slide .img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+.slide:hover .img {
+  transform: scale(1.05);
+}
+.slide .txt {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.slide h4 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+}
+.slide p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.carousel-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+.circle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(2,6,23,0.04);
+  transition: background 0.3s ease;
+}
+.circle-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.carousel-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ddd;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.carousel-dots .dot.active {
+  background: var(--accent);
+}
+
+/* --- Analysis section (form) --- */
+section.analysis {
+  padding: 64px 20px;
+  display: flex;
+  justify-content: center;
+  background: transparent;
+}
+.analysis-inner {
+  max-width: 1100px;
+  width: 100%;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.teams {
+  display: flex;
+  gap: 18px;
+  flex: 1;
+}
+.team-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid #eee;
+}
+.team-card h5 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+.nick-select {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.nick-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.player-row {
+  display: flex;
+  gap: 10px;
+  align-items: center; 
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #f2f2f4;
+  margin-bottom: 8px;
+}
+.player-row input {
+  border: 1px solid #eee;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 90%;
+  transition: border-color 0.3s ease;
+}
+.player-row input:focus,
+.player-row select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.champ-select {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.champ-label,
+.role-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.player-row select {
+  border: 1px solid #eee;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 100%;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+.analyze-panel {
+  width: 340px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid #eee;
+}
+.score-large {
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+.progress {
+  height: 10px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress > i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+}
+.advice {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* footer */
+footer.site-footer {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* responsive */
+@media (max-width: 1000px) {
+  .hero-inner { flex-direction: column; gap: 14px; align-items: center; }
+  .left-bubble, .right-bubble { display: none; }
+  .nexus { font-size: 56px; }
+  .nexus-illustration { width: 220px; height: 180px; }
+  .how-inner { max-width: 90%; }
+  .carousel .viewport { height: auto; }
+  .slide { flex-direction: column; gap: 16px; padding: 20px; }
+  .slide .img { width: 100%; height: 180px; }
+  .slide .txt { width: 100%; text-align: center; }
+  .carousel-controls { flex-direction: row; margin-top: 16px; }
+  .carousel-dots { margin-top: 12px; }
+  .analysis-inner { flex-direction: column; }
+  .teams { flex-direction: column; }
+  .player-row { flex-direction: column; align-items: stretch; }
+  .player-row input, .champ-select { width: 100%; }
+  .champ-select { gap: 4px; }
+  .analyze-panel { width: 100%; }
+  header.site-header { padding: 10px 16px; }
+}
