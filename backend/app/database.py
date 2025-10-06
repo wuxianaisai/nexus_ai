@@ -5,20 +5,17 @@ import time
 import json
 from config import DB_CONFIG, API_KEY, HEADERS, REGION, API_REGION, ROLES
 
-# Подключение к БД
-try:
-    conn = psycopg2.connect(**DB_CONFIG)
-    cursor = conn.cursor()
-except psycopg2.Error as e:
-    raise Exception(f"Ошибка подключения к БД: {e}")
-
 def load_mastery(puuid):
     try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
         url = f"https://{REGION}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}"
         response = requests.get(url, headers=HEADERS)
         time.sleep(1.2)
         if response.status_code != 200:
             print(f"Ошибка загрузки мастерства для puuid {puuid}: HTTP {response.status_code}, {response.text}")
+            cursor.close()
+            conn.close()
             return
 
         data = response.json()
@@ -53,21 +50,35 @@ def load_mastery(puuid):
 
         conn.commit()
         print(f"Мастерство чемпионов для puuid {puuid} сохранено")
+        cursor.close()
+        conn.close()
     except psycopg2.Error as e:
-        conn.rollback()
         print(f"Ошибка БД при загрузке мастерства для puuid {puuid}: {e}")
-    except Exception as e:
-        print(f"Ошибка при загрузке мастерства для puuid {puuid}: {e}")
+        if 'conn' in locals():
+            conn.rollback()
+            cursor.close()
+            conn.close()
 
 def check_player_exists(game_name, tag_line):
-    cursor.execute("""
-        SELECT s.puuid
-        FROM players_names p
-        LEFT JOIN summoners s USING (game_name, tag_line, region)
-        WHERE p.game_name = %s AND p.tag_line = %s AND p.region = %s
-    """, (game_name, tag_line, REGION))
-    result = cursor.fetchone()
-    return result[0] if result else None
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.puuid
+            FROM players_names p
+            LEFT JOIN summoners s USING (game_name, tag_line, region)
+            WHERE p.game_name = %s AND p.tag_line = %s AND p.region = %s
+        """, (game_name, tag_line, REGION))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result[0] if result else None
+    except psycopg2.Error as e:
+        print(f"Ошибка БД при проверке игрока {game_name}#{tag_line}: {e}")
+        if 'conn' in locals():
+            cursor.close()
+            conn.close()
+        return None
 
 def insert_player(game_name, tag_line):
     try:
@@ -76,16 +87,23 @@ def insert_player(game_name, tag_line):
             print(f"Игрок {game_name}#{tag_line} уже в базе")
             return puuid
 
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
         # Запрос puuid
         url_account = f"https://{API_REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{game_name}/{tag_line}"
         r = requests.get(url_account, headers=HEADERS)
         time.sleep(1.2)
         if r.status_code != 200:
             print(f"Ошибка API для {game_name}#{tag_line}: HTTP {r.status_code}, {r.text}")
+            cursor.close()
+            conn.close()
             return None
         account = r.json()
         if "puuid" not in account:
             print(f"Ошибка для {game_name}#{tag_line}: нет puuid, ответ: {account}")
+            cursor.close()
+            conn.close()
             return None
         puuid = account["puuid"]
 
@@ -95,10 +113,14 @@ def insert_player(game_name, tag_line):
         time.sleep(1.2)
         if s.status_code != 200:
             print(f"Ошибка Summoner API для {puuid}: HTTP {s.status_code}, {s.text}")
+            cursor.close()
+            conn.close()
             return None
         summoner = s.json()
         if "summonerLevel" not in summoner:
             print(f"Ошибка summoner для {puuid}: нет summonerLevel, ответ: {summoner}")
+            cursor.close()
+            conn.close()
             return None
 
         try:
@@ -120,6 +142,8 @@ def insert_player(game_name, tag_line):
                     player_id = player_id[0]
                 else:
                     print(f"Не удалось вставить или найти игрока {game_name}#{tag_line} в players_names")
+                    cursor.close()
+                    conn.close()
                     return None
 
             # summoners
@@ -134,21 +158,33 @@ def insert_player(game_name, tag_line):
 
             # Загрузка мастерства
             load_mastery(puuid)
+            cursor.close()
+            conn.close()
             return puuid
         except psycopg2.Error as e:
             conn.rollback()
             print(f"Ошибка БД для {game_name}#{tag_line}: {e}")
+            cursor.close()
+            conn.close()
             return None
     except Exception as e:
         print(f"Ошибка для {game_name}#{tag_line}: {e}")
+        if 'conn' in locals():
+            cursor.close()
+            conn.close()
         return None
 
 def insert_match(puuid, match_id):
     try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
         # Проверка, есть ли матч
         cursor.execute("SELECT 1 FROM matches WHERE match_id = %s", (match_id,))
         if cursor.fetchone():
             print(f"Матч {match_id} уже в базе")
+            cursor.close()
+            conn.close()
             return
 
         # Получение данных матча
@@ -157,12 +193,16 @@ def insert_match(puuid, match_id):
         time.sleep(1.2)
         if match_resp.status_code != 200:
             print(f"Ошибка {match_resp.status_code} при загрузке матча {match_id}: {match_resp.text}")
+            cursor.close()
+            conn.close()
             return
         match_data = match_resp.json()
         info = match_data["info"]
 
         if info.get("gameMode") == "ARAM":
             print(f"Матч {match_id} пропущен (режим ARAM)")
+            cursor.close()
+            conn.close()
             return
 
         try:
@@ -212,11 +252,18 @@ def insert_match(puuid, match_id):
             cursor.execute("SELECT fill_match_features(%s)", (match_id,))
             conn.commit()
             print(f"Матч {match_id} сохранён")
+            cursor.close()
+            conn.close()
         except psycopg2.Error as e:
             conn.rollback()
             print(f"Ошибка БД для матча {match_id}: {e}")
+            cursor.close()
+            conn.close()
     except Exception as e:
         print(f"Ошибка для матча {match_id}: {e}")
+        if 'conn' in locals():
+            cursor.close()
+            conn.close()
 
 def fetch_player_data(game_name, tag_line, max_matches=30):
     puuid = insert_player(game_name, tag_line)
@@ -225,26 +272,30 @@ def fetch_player_data(game_name, tag_line, max_matches=30):
         return
 
     try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
         url = f"https://{API_REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?count={max_matches}"
         resp = requests.get(url, headers=HEADERS)
         time.sleep(1.2)
         if resp.status_code != 200:
             print(f"Ошибка {resp.status_code} при получении матчей для {game_name}: {resp.text}")
+            cursor.close()
+            conn.close()
             return
 
         match_ids = resp.json()
         for match_id in match_ids:
             insert_match(puuid, match_id)
             time.sleep(1.2)
+        cursor.close()
+        conn.close()
     except Exception as e:
         print(f"Ошибка при получении матчей для {puuid}: {e}")
-    finally:
-        conn.commit()
+        if 'conn' in locals():
+            cursor.close()
+            conn.close()
 
 if __name__ == "__main__":
     game_name = input("Введите game_name: ")
     tag_line = input("Введите tag_line: ")
     fetch_player_data(game_name, tag_line)
-
-cursor.close()
-conn.close()

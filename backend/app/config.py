@@ -29,7 +29,8 @@ ROLES = {
     "JUNGLE": 2,
     "MIDDLE": 3,
     "BOTTOM": 4,
-    "UTILITY": 5
+    "UTILITY": 5,
+    "UNKNOWN": 0
 }
 
 # Версия Data Dragon

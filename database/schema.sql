@@ -1,14 +1,14 @@
 -- Roles table (справочник ролей)
 CREATE TABLE roles (
     role_id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE, -- e.g., 'TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'
-    CONSTRAINT valid_role CHECK (name IN ('TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'))
+    name VARCHAR(50) NOT NULL UNIQUE,
+    CONSTRAINT valid_role CHECK (name IN ('TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY', 'UNKNOWN'))
 );
 
 -- Champions table
 CREATE TABLE IF NOT EXISTS champions (
     champion_id INTEGER PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
+    champion_name VARCHAR(50) NOT NULL,
     version VARCHAR(10) NOT NULL,
     tags VARCHAR[] DEFAULT '{}',
     difficulty INTEGER CHECK (difficulty >= 0 AND difficulty <= 10),
