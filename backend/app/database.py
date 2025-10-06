@@ -2,29 +2,8 @@ import requests
 import psycopg2
 from datetime import datetime
 import time
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-# Конфигурация
-API_KEY = os.getenv("RIOT_API_KEY")
-if not API_KEY:
-    raise ValueError("RIOT_API_KEY не найден в .env")
-headers = {"X-Riot-Token": API_KEY}
-DB_CONFIG = {
-    "dbname": os.getenv("DB_NAME"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "host": os.getenv("DB_HOST")
-}
-REGION = "RU"
-API_REGION = "europe"
-
-# Проверка конфигурации
-for key, value in DB_CONFIG.items():
-    if value is None:
-        raise ValueError(f"Переменная окружения для {key} не найдена в .env")
+import json
+from config import DB_CONFIG, API_KEY, HEADERS, REGION, API_REGION, ROLES
 
 # Подключение к БД
 try:
@@ -33,8 +12,52 @@ try:
 except psycopg2.Error as e:
     raise Exception(f"Ошибка подключения к БД: {e}")
 
-# Маппинг ролей
-roles = {'TOP': 1, 'JUNGLE': 2, 'MIDDLE': 3, 'BOTTOM': 4, 'UTILITY': 5}
+def load_mastery(puuid):
+    try:
+        url = f"https://{REGION}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}"
+        response = requests.get(url, headers=HEADERS)
+        time.sleep(1.2)
+        if response.status_code != 200:
+            print(f"Ошибка загрузки мастерства для puuid {puuid}: HTTP {response.status_code}, {response.text}")
+            return
+
+        data = response.json()
+        for mastery in data:
+            champion_id = mastery["championId"]
+            champion_level = mastery["championLevel"]
+            champion_points = mastery["championPoints"]
+            last_play_time = datetime.fromtimestamp(mastery["lastPlayTime"] / 1000) if mastery.get("lastPlayTime") else None
+            tokens_earned = min(mastery.get("tokensEarned", 0), 20)
+            champion_season_milestone = mastery.get("championSeasonMilestone", 0)
+            milestone_grades = json.dumps(mastery.get("milestoneGrades", []))
+            next_season_milestone = json.dumps(mastery.get("nextSeasonMilestone", {}))
+
+            cursor.execute("""
+                INSERT INTO champion_mastery (
+                    puuid, champion_id, champion_level, champion_points, last_play_time, 
+                    tokens_earned, champion_season_milestone, milestone_grades, next_season_milestone
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT ON CONSTRAINT champion_mastery_pkey DO UPDATE
+                SET champion_level = EXCLUDED.champion_level,
+                    champion_points = EXCLUDED.champion_points,
+                    last_play_time = EXCLUDED.last_play_time,
+                    tokens_earned = EXCLUDED.tokens_earned,
+                    champion_season_milestone = EXCLUDED.champion_season_milestone,
+                    milestone_grades = EXCLUDED.milestone_grades,
+                    next_season_milestone = EXCLUDED.next_season_milestone
+            """, (
+                puuid, champion_id, champion_level, champion_points, last_play_time, 
+                tokens_earned, champion_season_milestone, milestone_grades, next_season_milestone
+            ))
+
+        conn.commit()
+        print(f"Мастерство чемпионов для puuid {puuid} сохранено")
+    except psycopg2.Error as e:
+        conn.rollback()
+        print(f"Ошибка БД при загрузке мастерства для puuid {puuid}: {e}")
+    except Exception as e:
+        print(f"Ошибка при загрузке мастерства для puuid {puuid}: {e}")
 
 def check_player_exists(game_name, tag_line):
     cursor.execute("""
@@ -48,7 +71,6 @@ def check_player_exists(game_name, tag_line):
 
 def insert_player(game_name, tag_line):
     try:
-        # Проверка существования
         puuid = check_player_exists(game_name, tag_line)
         if puuid:
             print(f"Игрок {game_name}#{tag_line} уже в базе")
@@ -56,7 +78,8 @@ def insert_player(game_name, tag_line):
 
         # Запрос puuid
         url_account = f"https://{API_REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{game_name}/{tag_line}"
-        r = requests.get(url_account, headers=headers)
+        r = requests.get(url_account, headers=HEADERS)
+        time.sleep(1.2)
         if r.status_code != 200:
             print(f"Ошибка API для {game_name}#{tag_line}: HTTP {r.status_code}, {r.text}")
             return None
@@ -68,7 +91,8 @@ def insert_player(game_name, tag_line):
 
         # Запрос summonerLevel
         url_summoner = f"https://{REGION}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}"
-        s = requests.get(url_summoner, headers=headers)
+        s = requests.get(url_summoner, headers=HEADERS)
+        time.sleep(1.2)
         if s.status_code != 200:
             print(f"Ошибка Summoner API для {puuid}: HTTP {s.status_code}, {s.text}")
             return None
@@ -105,8 +129,11 @@ def insert_player(game_name, tag_line):
                 ON CONFLICT (puuid) DO NOTHING
             """, (puuid, game_name, tag_line, REGION, summoner["summonerLevel"]))
 
-            conn.commit() 
+            conn.commit()
             print(f"{game_name}#{tag_line} сохранён")
+
+            # Загрузка мастерства
+            load_mastery(puuid)
             return puuid
         except psycopg2.Error as e:
             conn.rollback()
@@ -126,7 +153,8 @@ def insert_match(puuid, match_id):
 
         # Получение данных матча
         match_url = f"https://{API_REGION}.api.riotgames.com/lol/match/v5/matches/{match_id}"
-        match_resp = requests.get(match_url, headers=headers)
+        match_resp = requests.get(match_url, headers=HEADERS)
+        time.sleep(1.2)
         if match_resp.status_code != 200:
             print(f"Ошибка {match_resp.status_code} при загрузке матча {match_id}: {match_resp.text}")
             return
@@ -162,7 +190,7 @@ def insert_match(puuid, match_id):
                         continue
 
                 role = p.get("teamPosition", "UNKNOWN")
-                role_id = roles.get(role)
+                role_id = ROLES.get(role)
                 if not role_id:
                     print(f"Неизвестная роль {role} для {match_id}")
                     continue
@@ -179,6 +207,7 @@ def insert_match(puuid, match_id):
                     p["goldEarned"], p["totalDamageDealtToChampions"], p["totalDamageTaken"],
                     p["totalMinionsKilled"], p["visionScore"], p["win"]
                 ))
+
             cursor.execute("SELECT fill_team_aggregates(%s)", (match_id,))
             cursor.execute("SELECT fill_match_features(%s)", (match_id,))
             conn.commit()
@@ -197,7 +226,8 @@ def fetch_player_data(game_name, tag_line, max_matches=30):
 
     try:
         url = f"https://{API_REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?count={max_matches}"
-        resp = requests.get(url, headers=headers)
+        resp = requests.get(url, headers=HEADERS)
+        time.sleep(1.2)
         if resp.status_code != 200:
             print(f"Ошибка {resp.status_code} при получении матчей для {game_name}: {resp.text}")
             return
@@ -211,9 +241,10 @@ def fetch_player_data(game_name, tag_line, max_matches=30):
     finally:
         conn.commit()
 
-game_name = input("Введите game_name: ")
-tag_line = input("Введите tag_line: ")
-fetch_player_data(game_name, tag_line)
+if __name__ == "__main__":
+    game_name = input("Введите game_name: ")
+    tag_line = input("Введите tag_line: ")
+    fetch_player_data(game_name, tag_line)
 
 cursor.close()
 conn.close()

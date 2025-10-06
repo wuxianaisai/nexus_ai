@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS champions (
     name VARCHAR(50) NOT NULL,
     version VARCHAR(10) NOT NULL,
     tags VARCHAR[] DEFAULT '{}',
-    difficulty INTEGER CHECK (difficulty >= 1 AND difficulty <= 10),
+    difficulty INTEGER CHECK (difficulty >= 0 AND difficulty <= 10),
     primary_role VARCHAR(20),
     CONSTRAINT unique_champion UNIQUE (champion_id, version)
 );
@@ -73,6 +73,23 @@ CREATE TABLE match_players (
     vision_score INTEGER NOT NULL,
     win BOOLEAN NOT NULL
 );
+
+-- Champion_mastery table
+CREATE TABLE IF NOT EXISTS champion_mastery (
+    puuid VARCHAR(78) NOT NULL,
+    champion_id INTEGER NOT NULL,
+    champion_level INTEGER NOT NULL CHECK (champion_level >= 1),
+    champion_points INTEGER NOT NULL CHECK (champion_points >= 0),
+    last_play_time TIMESTAMP,
+    tokens_earned INTEGER DEFAULT 0 CHECK (tokens_earned >= 0 AND tokens_earned <= 20),
+    champion_season_milestone INTEGER DEFAULT 0,
+    milestone_grades JSONB DEFAULT '[]'::JSONB,
+    next_season_milestone JSONB DEFAULT '{}'::JSONB,
+    PRIMARY KEY (puuid, champion_id),
+    FOREIGN KEY (puuid) REFERENCES summoners(puuid) ON DELETE CASCADE,
+    FOREIGN KEY (champion_id) REFERENCES champions(champion_id) ON DELETE CASCADE
+);
+
 CREATE INDEX idx_match_puuid ON match_players (match_id, puuid);
 CREATE INDEX idx_puuid ON match_players (puuid);
 CREATE INDEX idx_match_players_role ON match_players (role_id);
