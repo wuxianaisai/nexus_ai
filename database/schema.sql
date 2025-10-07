@@ -1,0 +1,131 @@
+-- Roles table (справочник ролей)
+CREATE TABLE roles (
+    role_id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    CONSTRAINT valid_role CHECK (name IN ('TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY', 'UNKNOWN'))
+);
+
+-- Champions table
+CREATE TABLE IF NOT EXISTS champions (
+    champion_id INTEGER PRIMARY KEY,
+    champion_name VARCHAR(50) NOT NULL,
+    version VARCHAR(10) NOT NULL,
+    tags VARCHAR[] DEFAULT '{}',
+    difficulty INTEGER CHECK (difficulty >= 0 AND difficulty <= 10),
+    primary_role VARCHAR(20),
+    CONSTRAINT unique_champion UNIQUE (champion_id, version)
+);
+
+-- Players_names table (для lookup puuid по имени)
+CREATE TABLE players_names (
+    player_id SERIAL PRIMARY KEY,
+    game_name VARCHAR(100) NOT NULL,
+    tag_line VARCHAR(50) NOT NULL,
+    region VARCHAR(10) NOT NULL, -- e.g., 'EUW', 'NA'
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_player_name UNIQUE (game_name, tag_line, region)
+);
+CREATE INDEX idx_player_name ON players_names (game_name, tag_line, region);
+
+-- Summoners table (игроки с puuid)
+CREATE TABLE summoners (
+    puuid VARCHAR(78) PRIMARY KEY, -- Riot puuid length
+    game_name VARCHAR(100) NOT NULL,
+    tag_line VARCHAR(50) NOT NULL,
+    region VARCHAR(10) NOT NULL, -- e.g., 'EUW', 'NA'
+    summoner_level INTEGER NOT NULL,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_summoner_name UNIQUE (game_name, tag_line, region)
+);
+CREATE INDEX idx_summoner_puuid ON summoners (puuid);
+CREATE INDEX idx_summoner_name ON summoners (game_name, tag_line, region);
+
+-- Matches table (метаданные матчей)
+CREATE TABLE matches (
+    match_id VARCHAR(50) PRIMARY KEY, -- Riot match ID, e.g., 'EUW1_1234567890'
+    region VARCHAR(10) NOT NULL, -- e.g., 'EUW', 'NA'
+    game_mode VARCHAR(50) NOT NULL, -- e.g., 'CLASSIC'
+    queue_id INTEGER NOT NULL, -- e.g., 420 for ranked
+    map_id INTEGER NOT NULL, -- e.g., 11 for Summoner's Rift
+    duration INTEGER NOT NULL, -- seconds
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    winner_team INTEGER NOT NULL -- 100=blue, 200=red
+);
+CREATE INDEX idx_match_id ON matches (match_id, region);
+CREATE INDEX idx_start_time ON matches (start_time);
+
+-- Match_players table (индивидуальные статы игроков в матче)
+CREATE TABLE match_players (
+    participant_id SERIAL PRIMARY KEY,
+    match_id VARCHAR(50) NOT NULL REFERENCES matches(match_id),
+    puuid VARCHAR(78) NOT NULL REFERENCES summoners(puuid),
+    team INTEGER NOT NULL, -- 100=blue, 200=red
+    champion_id INTEGER NOT NULL, -- References Data Dragon champion ID
+    role_id INTEGER NOT NULL REFERENCES roles(role_id),
+    kills INTEGER NOT NULL,
+    deaths INTEGER NOT NULL,
+    assists INTEGER NOT NULL,
+    gold INTEGER NOT NULL,
+    damage_dealt INTEGER NOT NULL,
+    damage_taken INTEGER NOT NULL,
+    cs INTEGER NOT NULL, -- creep score
+    vision_score INTEGER NOT NULL,
+    win BOOLEAN NOT NULL
+);
+
+-- Champion_mastery table
+CREATE TABLE IF NOT EXISTS champion_mastery (
+    puuid VARCHAR(78) NOT NULL,
+    champion_id INTEGER NOT NULL,
+    champion_level INTEGER NOT NULL CHECK (champion_level >= 1),
+    champion_points INTEGER NOT NULL CHECK (champion_points >= 0),
+    last_play_time TIMESTAMP,
+    tokens_earned INTEGER DEFAULT 0 CHECK (tokens_earned >= 0 AND tokens_earned <= 20),
+    champion_season_milestone INTEGER DEFAULT 0,
+    milestone_grades JSONB DEFAULT '[]'::JSONB,
+    next_season_milestone JSONB DEFAULT '{}'::JSONB,
+    PRIMARY KEY (puuid, champion_id),
+    FOREIGN KEY (puuid) REFERENCES summoners(puuid) ON DELETE CASCADE,
+    FOREIGN KEY (champion_id) REFERENCES champions(champion_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_match_puuid ON match_players (match_id, puuid);
+CREATE INDEX idx_puuid ON match_players (puuid);
+CREATE INDEX idx_match_players_role ON match_players (role_id);
+
+-- Team_aggregates table (агрегированные статы команд)
+CREATE TABLE team_aggregates (
+    agg_id SERIAL PRIMARY KEY,
+    match_id VARCHAR(50) NOT NULL REFERENCES matches(match_id),
+    team INTEGER NOT NULL, -- 100=blue, 200=red
+    kills INTEGER NOT NULL,
+    deaths INTEGER NOT NULL,
+    assists INTEGER NOT NULL,
+    total_cs INTEGER NOT NULL,
+    total_vision INTEGER NOT NULL,
+    gold INTEGER NOT NULL,
+    damage_dealt INTEGER NOT NULL,
+    damage_taken INTEGER NOT NULL,
+    win BOOLEAN NOT NULL,
+    player_count INTEGER NOT NULL, -- e.g., 5
+    mean_kda_ind FLOAT NOT NULL -- average KDA per player
+);
+CREATE INDEX idx_team_match ON team_aggregates (match_id, team);
+
+-- Match_features table (разницы метрик для ML)
+CREATE TABLE match_features (
+    feature_id SERIAL PRIMARY KEY,
+    match_id VARCHAR(50) NOT NULL REFERENCES matches(match_id),
+    kills_diff INTEGER NOT NULL, -- blue - red
+    deaths_diff INTEGER NOT NULL,
+    assists_diff INTEGER NOT NULL,
+    gold_diff INTEGER NOT NULL,
+    damage_diff INTEGER NOT NULL,
+    damage_taken_diff INTEGER NOT NULL,
+    cs_diff INTEGER NOT NULL,
+    vision_diff INTEGER NOT NULL,
+    mean_kda_diff FLOAT NOT NULL,
+    win_blue BOOLEAN NOT NULL -- target for ML
+);
+CREATE INDEX idx_feature_match ON match_features (match_id);
