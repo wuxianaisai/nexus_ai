@@ -40,6 +40,27 @@ CREATE TABLE summoners (
 CREATE INDEX idx_summoner_puuid ON summoners (puuid);
 CREATE INDEX idx_summoner_name ON summoners (game_name, tag_line, region);
 
+-- Для рангов
+CREATE TABLE league_entries (
+    entry_id SERIAL PRIMARY KEY,
+    puuid VARCHAR(78) NOT NULL REFERENCES summoners(puuid) ON DELETE CASCADE,
+    league_id VARCHAR(36), -- UUID from Riot API
+    queue_type VARCHAR(50) NOT NULL, -- e.g., 'RANKED_SOLO_5x5', 'RANKED_FLEX_SR'
+    tier VARCHAR(20), -- e.g., 'IRON', 'SILVER'
+    rank VARCHAR(5), -- e.g., 'I', 'II', 'III', 'IV'
+    league_points INTEGER NOT NULL CHECK (league_points >= 0),
+    wins INTEGER NOT NULL CHECK (wins >= 0),
+    losses INTEGER NOT NULL CHECK (losses >= 0),
+    veteran BOOLEAN NOT NULL,
+    inactive BOOLEAN NOT NULL,
+    fresh_blood BOOLEAN NOT NULL,
+    hot_streak BOOLEAN NOT NULL,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_league_entry UNIQUE (puuid, queue_type)
+);
+CREATE INDEX idx_league_puuid ON league_entries (puuid);
+CREATE INDEX idx_league_queue ON league_entries (queue_type);
+
 -- Matches table (метаданные матчей)
 CREATE TABLE matches (
     match_id VARCHAR(50) PRIMARY KEY, -- Riot match ID, e.g., 'EUW1_1234567890'

@@ -11,3 +11,8 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_players_names_timestamp
 BEFORE UPDATE ON players_names
 FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+-- Триггер для рангов
+CREATE TRIGGER update_league_entries_timestamp
+BEFORE UPDATE ON league_entries
+FOR EACH ROW EXECUTE FUNCTION update_timestamp();
