@@ -60,6 +60,66 @@ def load_mastery(puuid):
             cursor.close()
             conn.close()
 
+def load_league_entries(puuid):
+    """Загружает данные рейтинга игрока из Riot API и сохраняет в таблицу league_entries."""
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        url = f"https://{REGION}.api.riotgames.com/lol/league/v4/entries/by-puuid/{puuid}"
+        response = requests.get(url, headers=HEADERS)
+        time.sleep(1.2)
+        if response.status_code != 200:
+            print(f"Ошибка загрузки рейтинга для puuid {puuid}: HTTP {response.status_code}, {response.text}")
+            cursor.close()
+            conn.close()
+            return
+
+        data = response.json()
+        for entry in data:
+            cursor.execute("""
+                INSERT INTO league_entries (
+                    puuid, league_id, queue_type, tier, rank, league_points, 
+                    wins, losses, veteran, inactive, fresh_blood, hot_streak
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT ON CONSTRAINT unique_league_entry DO UPDATE
+                SET league_id = EXCLUDED.league_id,
+                    tier = EXCLUDED.tier,
+                    rank = EXCLUDED.rank,
+                    league_points = EXCLUDED.league_points,
+                    wins = EXCLUDED.wins,
+                    losses = EXCLUDED.losses,
+                    veteran = EXCLUDED.veteran,
+                    inactive = EXCLUDED.inactive,
+                    fresh_blood = EXCLUDED.fresh_blood,
+                    hot_streak = EXCLUDED.hot_streak,
+                    last_updated = CURRENT_TIMESTAMP
+            """, (
+                puuid, 
+                entry.get("leagueId"), 
+                entry.get("queueType"), 
+                entry.get("tier"), 
+                entry.get("rank"), 
+                entry.get("leaguePoints", 0), 
+                entry.get("wins", 0), 
+                entry.get("losses", 0), 
+                entry.get("veteran", False), 
+                entry.get("inactive", False), 
+                entry.get("freshBlood", False), 
+                entry.get("hotStreak", False)
+            ))
+
+        conn.commit()
+        print(f"Рейтинг для puuid {puuid} сохранён")
+        cursor.close()
+        conn.close()
+    except psycopg2.Error as e:
+        print(f"Ошибка БД при загрузке рейтинга для puuid {puuid}: {e}")
+        if 'conn' in locals():
+            conn.rollback()
+            cursor.close()
+            conn.close()
+
 def check_player_exists(game_name, tag_line):
     try:
         conn = psycopg2.connect(**DB_CONFIG)
@@ -86,6 +146,8 @@ def insert_player(game_name, tag_line):
         puuid = check_player_exists(game_name, tag_line)
         if puuid:
             print(f"Игрок {game_name}#{tag_line} уже в базе")
+            # Обновляем рейтинг, если игрок существует
+            load_league_entries(puuid)
             return puuid
 
         conn = psycopg2.connect(**DB_CONFIG)
@@ -161,8 +223,9 @@ def insert_player(game_name, tag_line):
             conn.commit()
             print(f"{game_name}#{tag_line} сохранён")
 
-            # Загрузка мастерства
+            # Загрузка мастерства и рейтинга
             load_mastery(puuid)
+            load_league_entries(puuid)
             cursor.close()
             conn.close()
             return puuid
@@ -270,7 +333,7 @@ def insert_match(puuid, match_id):
             cursor.close()
             conn.close()
 
-def fetch_player_data(game_name, tag_line, max_matches=100):
+def fetch_player_data(game_name, tag_line, max_matches=99):
     puuid = insert_player(game_name, tag_line)
     if not puuid:
         print(f"Не удалось получить puuid для {game_name}#{tag_line}")
